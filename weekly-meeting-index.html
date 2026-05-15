@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주간 회의록 자동화 · AI 세션</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #13151f;
+  color: #e2e4ef;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-weight: 300;
+  line-height: 1.75;
+  min-height: 100vh;
+}
+
+a { color: #7b9cff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── HEADER ── */
+.top-tag {
+  display: inline-block;
+  border: 1.5px solid #3a3f58;
+  border-radius: 6px;
+  padding: 5px 14px;
+  font-size: 12px;
+  color: #9aa3c2;
+  letter-spacing: .04em;
+  margin-bottom: 32px;
+  font-family: 'DM Mono', monospace;
+}
+
+header {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 56px 24px 40px;
+}
+
+.pre-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #9aa3c2;
+  margin-bottom: 6px;
+}
+
+h1 {
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -.03em;
+  margin-bottom: 20px;
+  padding: 2px 0;
+}
+h1 .hl {
+  background: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-desc {
+  font-size: 15px;
+  color: #9aa3c2;
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+
+.header-link {
+  font-size: 14px;
+  color: #9aa3c2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+}
+.header-link a { color: #7b9cff; font-weight: 500; }
+
+/* ── MAIN ── */
+main {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+/* ── CARD ── */
+.card {
+  background: #1a1d2e;
+  border: 1px solid #272b3f;
+  border-radius: 14px;
+  padding: 28px 28px 24px;
+  margin-bottom: 16px;
+}
+.card p {
+  font-size: 14px;
+  color: #c5c9df;
+  line-height: 1.85;
+}
+.card p + p { margin-top: 10px; }
+.card strong { color: #e2e4ef; font-weight: 700; }
+
+.card-label {
+  display: inline-block;
+  background: rgba(123,156,255,0.12);
+  border: 1px solid rgba(123,156,255,0.25);
+  color: #7b9cff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 5px;
+  margin-bottom: 16px;
+  font-family: 'DM Mono', monospace;
+}
+.card-label.teal { background: rgba(45,212,168,0.1); border-color: rgba(45,212,168,0.25); color: #2dd4a8; }
+.card-label.amber { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.25); color: #f59e0b; }
+.card-label.coral { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.25); color: #f87171; }
+
+/* ── SECTION DIVIDER ── */
+.section-gap { margin-top: 48px; margin-bottom: 20px; }
+.section-title {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: #3a3f58;
+  font-family: 'DM Mono', monospace;
+  margin-bottom: 16px;
+}
+
+/* ── STEP PILLS ── */
+.step-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+}
+.step-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #1a1d2e;
+  border: 1px solid #272b3f;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #9aa3c2;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+.step-pill:hover { border-color: #7b9cff; color: #e2e4ef; }
+.step-pill.active { border-color: #7b9cff; color: #7b9cff; }
+.step-pill .num {
+  width: 20px; height: 20px;
+  background: #7b9cff;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── STEP BLOCK ── */
+.step-block { margin-top: 8px; display: none; }
+.step-block.active { display: block; }
+
+.step-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding-top: 8px;
+}
+.step-num-badge {
+  width: 36px; height: 36px;
+  background: #7b9cff;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 900; color: #fff;
+  flex-shrink: 0;
+}
+.step-num-badge.teal { background: #2dd4a8; color: #0a1a14; }
+.step-num-badge.amber { background: #f59e0b; color: #1a0e00; }
+.step-num-badge.coral { background: #f87171; color: #1a0000; }
+
+.step-heading h2 { font-size: 18px; font-weight: 700; }
+
+/* ── CODE / EXAMPLES ── */
+code {
+  background: #0e1018;
+  border: 1px solid #272b3f;
+  border-radius: 5px;
+  padding: 3px 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 13px;
+  color: #7b9cff;
+  white-space: nowrap;
+}
+code.teal { color: #2dd4a8; }
+code.amber { color: #f59e0b; }
+
+.example-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #1f2338;
+  font-size: 13px;
+}
+.example-row:last-child { border-bottom: none; }
+.ex-label { color: #6b7194; font-size: 12px; min-width: 28px; flex-shrink: 0; }
+.ex-arrow { color: #3a3f58; font-size: 14px; }
+.ex-desc { color: #9aa3c2; font-size: 13px; }
+
+/* ── PROMPT BOX ── */
+.prompt-box {
+  background: #0e1018;
+  border: 1px solid #272b3f;
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin: 14px 0;
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  color: #9aa3c2;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  position: relative;
+}
+.prompt-box .ph { color: #5a6080; font-style: italic; }
+.copy-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: #1a1d2e;
+  border: 1px solid #272b3f;
+  border-radius: 5px;
+  color: #6b7194;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  transition: color .15s, border-color .15s;
+}
+.copy-btn:hover { color: #e2e4ef; border-color: #7b9cff; }
+
+/* ── FOLDER TREE ── */
+.folder-tree {
+  background: #0e1018;
+  border: 1px solid #272b3f;
+  border-radius: 10px;
+  padding: 18px 20px;
+  font-family: 'DM Mono', monospace;
+  font-size: 12.5px;
+  line-height: 2;
+  color: #9aa3c2;
+}
+.folder-tree .dir { color: #7b9cff; }
+.folder-tree .file { color: #6b7194; }
+.folder-tree .cmt { color: #3a3f58; }
+
+/* ── SETUP LIST ── */
+.setup-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid #1f2338;
+}
+.setup-row:last-child { border-bottom: none; }
+.setup-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0; margin-top: 2px;
+}
+.setup-icon.blue { background: rgba(123,156,255,0.1); }
+.setup-icon.teal { background: rgba(45,212,168,0.1); }
+.setup-icon.amber { background: rgba(245,158,11,0.1); }
+.setup-name { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.setup-desc { font-size: 12px; color: #9aa3c2; line-height: 1.6; }
+
+/* ── TABS ── */
+.tab-wrap {
+  background: #1a1d2e;
+  border: 1px solid #272b3f;
+  border-radius: 14px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.tab-btns { display: flex; }
+.tab-btn {
+  flex: 1;
+  padding: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #6b7194;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.tab-btn.active { background: #7b9cff; color: #fff; }
+.tab-btn:not(.active):hover { background: #1f2338; color: #c5c9df; }
+.tab-content { padding: 0 28px 24px; display: none; }
+.tab-content.active { display: block; }
+
+/* ── TIMELINE ── */
+.timeline {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.tl-card {
+  background: #1a1d2e;
+  border: 1px solid #272b3f;
+  border-radius: 12px;
+  padding: 20px;
+}
+.tl-card.wide { grid-column: 1 / -1; }
+.tl-num { font-family: 'DM Mono', monospace; font-size: 11px; color: #3a3f58; margin-bottom: 6px; }
+.tl-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.tl-card p { font-size: 13px; color: #9aa3c2; line-height: 1.7; }
+.tl-time {
+  display: inline-block;
+  background: rgba(123,156,255,0.1);
+  border: 1px solid rgba(123,156,255,0.2);
+  color: #7b9cff;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-top: 10px;
+}
+
+/* ── HINT ── */
+.hint {
+  font-size: 12px;
+  color: #3a3f58;
+  margin-top: 6px;
+}
+
+@media (max-width: 600px) {
+  .timeline { grid-template-columns: 1fr; }
+  .tl-card.wide { grid-column: 1; }
+  .example-row { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<header>
+  <div class="top-tag">테크DevEx팀 · AI 활용 세션</div>
+  <div class="pre-title">사람이 쓰지 않아도 완성되는</div>
+  <h1><span class="hl">주간 회의록 자동화</span></h1>
+  <p class="header-desc">
+    슬랙 대화에서 아젠다를 뽑고, 회의 녹화로 내용을 기록하고,<br>
+    Claude가 보고체 회의록까지 완성합니다.
+  </p>
+  <p class="header-desc">본인이 쓰는 도구를 선택하고 따라하세요.</p>
+
+</header>
+
+<main>
+
+<!-- ═══════════════════════════ 개념 카드 ═══════════════════════════ -->
+<div class="card">
+  <div class="card-label">이 세션에서 만드는 것</div>
+  <p>
+    <strong>매주 누군가가 회의록을 쓰고 있다면,</strong> 그 시간을 없앨 수 있습니다.<br>
+    슬랙 대화 → 아젠다 초안, 회의 녹화 → 텍스트 변환, Claude → 보고체 완성까지
+    전 과정을 자동으로 이어붙입니다.
+  </p>
+</div>
+
+<div class="card">
+  <div class="card-label">왜 Claude인가요?</div>
+  <p>
+    Claude는 <strong>슬랙 MCP로 채널 대화를 직접 읽을 수 있습니다.</strong>
+    별도 연동 개발 없이 "이번 주 #팀채널 대화에서 아젠다 뽑아줘"라고 하면 됩니다.
+  </p>
+  <p>
+    회의 스크립트(텍스트)를 붙여넣으면 <strong>진행상황, 결정사항, 후속 아젠다</strong>를
+    한 번에 뽑아주고, 차상위 보고체까지 변환합니다.
+  </p>
+</div>
+
+<!-- ═══════════════════════════ 전체 흐름 ═══════════════════════════ -->
+<div class="section-gap">
+  <div class="section-title">전체 자동화 흐름</div>
+</div>
+
+<div class="step-pills">
+  <div class="step-pill active" onclick="showStep(0,this)"><span class="num">1</span> 아젠다 추출</div>
+  <div class="step-pill" onclick="showStep(1,this)"><span class="num">2</span> 회의 녹화</div>
+  <div class="step-pill" onclick="showStep(2,this)"><span class="num">3</span> 스크립트 분석</div>
+  <div class="step-pill" onclick="showStep(3,this)"><span class="num">4</span> 보고체 완성</div>
+</div>
+
+<!-- STEP 1 -->
+<div class="step-block active" id="step-0">
+  <div class="step-heading">
+    <div class="step-num-badge">1</div>
+    <h2>슬랙 대화에서 아젠다 뽑기</h2>
+  </div>
+  <div class="card">
+    <div class="card-label teal">회의 전 · 자동</div>
+    <p>Claude가 슬랙 채널 대화를 읽고 이번 주 논의할 아젠다를 정리합니다. 미리 슬랙에 공유해두면 팀원들이 회의 전 맥락을 파악할 수 있습니다.</p>
+    <div style="margin-top:18px;">
+      <div class="example-row">
+        <span class="ex-label">입력</span>
+        <code class="teal">#team-devex 이번 주 대화</code>
+        <span class="ex-arrow">→</span>
+        <span class="ex-desc">슬랙 MCP로 자동 수집</span>
+      </div>
+      <div class="example-row">
+        <span class="ex-label">출력</span>
+        <code>아젠다 3~5개 + 소요시간</code>
+        <span class="ex-arrow">→</span>
+        <span class="ex-desc">슬랙 채널에 자동 발송</span>
+      </div>
+    </div>
+  </div>
+  <p class="hint">💡 Claude.ai 설정 → 연결된 앱 → Slack 활성화 필요</p>
+</div>
+
+<!-- STEP 2 -->
+<div class="step-block" id="step-1">
+  <div class="step-heading">
+    <div class="step-num-badge teal">2</div>
+    <h2>회의 중 자동 녹화</h2>
+  </div>
+  <div class="card">
+    <div class="card-label teal">회의 중 · 자동</div>
+    <p>구글밋 또는 슬랙 허들에서 녹화를 켜두면 됩니다. 별도로 할 일은 없습니다.</p>
+    <div style="margin-top:18px;">
+      <div class="example-row">
+        <span class="ex-label">도구</span>
+        <code class="teal">Google Meet</code>
+        <span class="ex-arrow">→</span>
+        <span class="ex-desc">내장 자막 + 녹화 기능</span>
+      </div>
+      <div class="example-row">
+        <span class="ex-label">도구</span>
+        <code class="teal">Granola</code>
+        <span class="ex-arrow">→</span>
+        <span class="ex-desc">STT 자동 변환 + 구글 드라이브 저장</span>
+      </div>
+      <div class="example-row">
+        <span class="ex-label">도구</span>
+        <code class="teal">Whisper API</code>
+        <span class="ex-arrow">→</span>
+        <span class="ex-desc">정확도 높은 음성→텍스트 변환</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 3 -->
+<div class="step-block" id="step-2">
+  <div class="step-heading">
+    <div class="step-num-badge amber">3</div>
+    <h2>스크립트 → 진행상황 + 후속 아젠다</h2>
+  </div>
+  <div class="card">
+    <div class="card-label amber">회의 후 · 자동</div>
+    <p>변환된 회의 스크립트를 Claude에 붙여넣으면 핵심만 추려줍니다.</p>
+    <div class="prompt-box" id="prompt-2"><button class="copy-btn" onclick="copyPrompt('prompt-2',this)">복사</button>아래는 오늘 팀 회의 녹취록입니다.
+다음 세 가지를 뽑아줘.
+
+1. 아젠다별 논의 결과 및 현재 진행 상황
+2. 결정된 사항 (담당자 + 기한 포함)
+3. 다음 주 후속 아젠다
+
+<span class="ph">[스크립트 붙여넣기]</span></div>
+  </div>
+</div>
+
+<!-- STEP 4 -->
+<div class="step-block" id="step-3">
+  <div class="step-heading">
+    <div class="step-num-badge coral">4</div>
+    <h2>보고체 회의록 완성 + 자동 발송</h2>
+  </div>
+  <div class="card">
+    <div class="card-label coral">회의 후 · 자동</div>
+    <p>3단계 결과를 바탕으로 차상위 조직장에게 보고하는 슬랙 메시지를 자동으로 완성합니다.</p>
+    <div class="prompt-box" id="prompt-3"><button class="copy-btn" onclick="copyPrompt('prompt-3',this)">복사</button>위 내용을 차상위 조직장에게 보고하는 형식으로 바꿔줘.
+- 톤: 간결하고 사실 중심
+- 구성: 이번 주 주요 진행 / 결정 사항 / 다음 주 계획
+- 분량: 슬랙 메시지 기준 20줄 이내</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ IDE 세팅 ═══════════════════════════ -->
+<div class="section-gap">
+  <div class="section-title">IDE 및 파일 세팅</div>
+</div>
+
+<div class="card">
+  <div class="card-label">폴더 구조</div>
+  <p style="margin-bottom:14px;">실습 전에 아래 구조로 폴더를 만들어두세요. 깃헙에서 클론하면 바로 사용할 수 있습니다.</p>
+  <div class="folder-tree"><span class="dir">meeting-auto/</span>
+├── <span class="file">CLAUDE.md</span>                     <span class="cmt"># 프로젝트 컨텍스트 + 규칙</span>
+├── <span class="dir">prompts/</span>
+│   ├── <span class="file">01_agenda_extract.md</span>    <span class="cmt"># 슬랙 → 아젠다</span>
+│   ├── <span class="file">02_transcript_analyze.md</span> <span class="cmt"># 스크립트 → 요약</span>
+│   └── <span class="file">03_report_format.md</span>      <span class="cmt"># 보고체 변환</span>
+├── <span class="dir">skills/</span>
+│   ├── <span class="file">SKILL.md</span>                <span class="cmt"># 스킬 정의 (트리거 + 톤)</span>
+│   ├── <span class="file">report-style.md</span>         <span class="cmt"># 보고체 작성 스타일 가이드</span>
+│   └── <span class="file">meeting-format.md</span>       <span class="cmt"># 회의록 포맷 템플릿</span>
+├── <span class="dir">samples/</span>
+│   ├── <span class="file">sample_slack_thread.txt</span>  <span class="cmt"># 슬랙 대화 샘플</span>
+│   └── <span class="file">sample_transcript.txt</span>   <span class="cmt"># 회의 스크립트 샘플</span>
+└── <span class="dir">output/</span>                       <span class="cmt"># 완성된 회의록 저장</span></div>
+</div>
+
+<div class="card">
+  <div class="card-label amber">CLAUDE.md</div>
+  <p>
+    프로젝트 루트에 두는 <strong>Claude 전용 컨텍스트 파일</strong>입니다.
+    Claude Code나 Claude.ai에서 이 프로젝트를 열면 자동으로 읽어서 맥락을 파악합니다.
+  </p>
+  <div class="prompt-box" id="prompt-claude"><button class="copy-btn" onclick="copyPrompt('prompt-claude',this)">복사</button><span style="color:#7b9cff;"># 주간 회의록 자동화</span>
+
+이 프로젝트는 테크DevEx팀 주간 회의록을 자동으로 생성합니다.
+
+<span style="color:#7b9cff;">## 흐름</span>
+1. 슬랙 채널 대화 → 아젠다 추출
+2. 회의 녹화 스크립트 → 진행상황/결정사항/후속 아젠다 추출
+3. 위 결과 → 차상위 조직장 보고체로 변환
+
+<span style="color:#7b9cff;">## 규칙</span>
+- 보고체는 간결하고 사실 중심. 20줄 이내.
+- 아젠다는 3~5개, 각각 배경과 소요시간 포함.
+- 결정사항에는 반드시 담당자 + 기한을 붙인다.
+- skills/ 폴더의 스타일 가이드를 따른다.
+
+<span style="color:#7b9cff;">## 참고</span>
+- prompts/ : 단계별 프롬프트 템플릿
+- skills/  : 작성 스타일 + 포맷 규칙
+- samples/ : 테스트용 샘플 데이터</div>
+</div>
+
+<div class="card">
+  <div class="card-label teal">skills/</div>
+  <p>
+    <strong>스킬은 Claude가 특정 작업을 일관되게 수행하도록 만드는 가이드 파일</strong>입니다.
+    프롬프트와 다른 점은, 매번 붙여넣지 않아도 프로젝트에 넣어두면 자동으로 참조된다는 것입니다.
+  </p>
+  <div style="margin-top:18px;">
+    <div class="example-row">
+      <span class="ex-label">파일</span>
+      <code class="teal">SKILL.md</code>
+      <span class="ex-arrow">→</span>
+      <span class="ex-desc">스킬 트리거 조건 + 톤 + 동작 규칙 정의</span>
+    </div>
+    <div class="example-row">
+      <span class="ex-label">파일</span>
+      <code class="teal">report-style.md</code>
+      <span class="ex-arrow">→</span>
+      <span class="ex-desc">보고체 톤, 문장 길이, 구성 규칙</span>
+    </div>
+    <div class="example-row">
+      <span class="ex-label">파일</span>
+      <code class="teal">meeting-format.md</code>
+      <span class="ex-arrow">→</span>
+      <span class="ex-desc">회의록 섹션 구조 + 예시 템플릿</span>
+    </div>
+  </div>
+  <div class="prompt-box" id="prompt-skill" style="margin-top:16px;"><button class="copy-btn" onclick="copyPrompt('prompt-skill',this)">복사</button><span style="color:#2dd4a8;"># skills/SKILL.md 예시</span>
+
+name: weekly-meeting-report
+description: |
+  "회의록 작성해줘", "이번 주 회의 정리해줘",
+  "보고체로 바꿔줘" 등의 요청이 오면 이 스킬을 사용한다.
+
+<span style="color:#2dd4a8;">## 톤</span>
+- 간결하고 사실 중심. 수식어 최소화.
+- "~했습니다" 체 기본. 감정 표현 없음.
+
+<span style="color:#2dd4a8;">## 구성</span>
+- 이번 주 주요 진행
+- 결정 사항 (담당자, 기한 필수)
+- 다음 주 계획
+
+<span style="color:#2dd4a8;">## 제약</span>
+- 슬랙 메시지 기준 20줄 이내
+- 불릿 남발 금지. 항목당 1~2문장으로 서술.</div>
+</div>
+
+<div class="card">
+  <div class="card-label">사전 준비 체크리스트</div>
+  <div>
+    <div class="setup-row">
+      <div class="setup-icon blue">🔗</div>
+      <div>
+        <div class="setup-name">슬랙 MCP 연결</div>
+        <div class="setup-desc">Claude.ai → 설정 → 연결된 앱 → Slack 활성화. 이게 돼야 슬랙 채널을 직접 읽을 수 있습니다.</div>
+      </div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-icon teal">🎙️</div>
+      <div>
+        <div class="setup-name">녹화 도구 준비</div>
+        <div class="setup-desc">구글밋 자막 기능 켜두거나, Granola 설치(권장). Whisper API는 별도 세팅 필요.</div>
+      </div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-icon amber">📁</div>
+      <div>
+        <div class="setup-name">깃헙 레포 클론</div>
+        <div class="setup-desc"><code style="font-size:12px;">git clone https://github.com/techdevex/meeting-auto</code></div>
+      </div>
+    </div>
+    <div class="setup-row">
+      <div class="setup-icon blue">✏️</div>
+      <div>
+        <div class="setup-name">VS Code 또는 Cursor</div>
+        <div class="setup-desc">프롬프트 파일 편집에 사용. Cursor라면 AI 기능 함께 실습 가능.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 프롬프트 실습 ═══════════════════════════ -->
+<div class="section-gap">
+  <div class="section-title">프롬프트 실습 · 직접 써보기</div>
+</div>
+
+<div class="tab-wrap">
+  <div class="tab-btns">
+    <button class="tab-btn active" onclick="showTab(0,this)">아젠다 추출</button>
+    <button class="tab-btn" onclick="showTab(1,this)">스크립트 분석</button>
+    <button class="tab-btn" onclick="showTab(2,this)">보고체 변환</button>
+  </div>
+
+  <div class="tab-content active" id="tab-0">
+    <p style="font-size:13px;color:#9aa3c2;margin:18px 0 6px;">슬랙 대화를 붙여넣고 아젠다를 뽑습니다.</p>
+    <div class="prompt-box" id="pt-0"><button class="copy-btn" onclick="copyPrompt('pt-0',this)">복사</button>아래는 우리 팀 슬랙 채널의 이번 주 대화입니다.
+회의에서 다뤄야 할 아젠다를 3~5개로 정리해줘.
+각 아젠다에는 배경(왜 논의해야 하는지)과
+예상 소요 시간을 붙여줘.
+
+<span class="ph">[슬랙 대화 붙여넣기]</span></div>
+    <p class="hint">💡 슬랙 MCP 연결 시 "이번 주 #팀채널 대화에서 아젠다 뽑아줘"로 대체 가능</p>
+  </div>
+
+  <div class="tab-content" id="tab-1">
+    <p style="font-size:13px;color:#9aa3c2;margin:18px 0 6px;">회의 녹취록을 붙여넣고 핵심을 추립니다.</p>
+    <div class="prompt-box" id="pt-1"><button class="copy-btn" onclick="copyPrompt('pt-1',this)">복사</button>아래는 오늘 팀 회의 녹취록입니다.
+다음 세 가지를 뽑아줘.
+
+1. 아젠다별 논의 결과 및 현재 진행 상황
+2. 결정된 사항 (담당자 + 기한 포함)
+3. 다음 주 후속 아젠다
+
+<span class="ph">[스크립트 붙여넣기]</span></div>
+  </div>
+
+  <div class="tab-content" id="tab-2">
+    <p style="font-size:13px;color:#9aa3c2;margin:18px 0 6px;">분석 결과를 보고체로 변환합니다.</p>
+    <div class="prompt-box" id="pt-2"><button class="copy-btn" onclick="copyPrompt('pt-2',this)">복사</button>위 내용을 차상위 조직장에게 보고하는 형식으로 바꿔줘.
+- 톤: 간결하고 사실 중심
+- 구성: 이번 주 주요 진행 / 결정 사항 / 다음 주 계획
+- 분량: 슬랙 메시지 기준 20줄 이내</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ 세션 구성 ═══════════════════════════ -->
+<div class="section-gap">
+  <div class="section-title">세션 구성 · 60분</div>
+</div>
+
+<div class="timeline">
+  <div class="tl-card wide">
+    <div class="tl-num">overview</div>
+    <h3>오늘 세션에서 하는 것</h3>
+    <p>회의록 쓰는 고통을 공유하고 → 실제로 자동화되는 걸 눈으로 보고 → 직접 써본 뒤 → 우리 팀에 어떻게 붙일지 이야기합니다.</p>
+  </div>
+  <div class="tl-card">
+    <div class="tl-num">01</div>
+    <h3>문제 인식</h3>
+    <p>"지금 회의록을 어떻게 쓰고 있나요?" 로 시작합니다. 고통 공유가 먼저입니다.</p>
+    <div class="tl-time">10분</div>
+  </div>
+  <div class="tl-card">
+    <div class="tl-num">02</div>
+    <h3>라이브 데모</h3>
+    <p>실제 슬랙 채널 또는 샘플로 시연. 보고체 회의록이 완성되는 순간이 하이라이트.</p>
+    <div class="tl-time">20분</div>
+  </div>
+  <div class="tl-card">
+    <div class="tl-num">03</div>
+    <h3>직접 실습</h3>
+    <p>샘플 파일로 아젠다 추출. 프롬프트를 조금씩 바꿔가며 결과 차이를 확인합니다.</p>
+    <div class="tl-time">20분</div>
+  </div>
+  <div class="tl-card">
+    <div class="tl-num">04</div>
+    <h3>Q&A + 다음 스텝</h3>
+    <p>"우리 팀에 실제로 붙이려면 뭐가 필요할까?"를 같이 이야기합니다.</p>
+    <div class="tl-time">10분</div>
+  </div>
+</div>
+
+</main>
+
+<script>
+function showStep(i,el){
+  document.querySelectorAll('.step-block').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.step-pill').forEach(p=>p.classList.remove('active'));
+  document.getElementById('step-'+i).classList.add('active');
+  el.classList.add('active');
+}
+function showTab(i,el){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+i).classList.add('active');
+  el.classList.add('active');
+}
+function copyPrompt(id,btn){
+  const box=document.getElementById(id);
+  const text=box.innerText.replace('복사','').trim();
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent='완료 ✓';
+    btn.style.color='#2dd4a8';
+    setTimeout(()=>{btn.textContent='복사';btn.style.color='';},1800);
+  });
+}
+</script>
+</body>
+</html>
